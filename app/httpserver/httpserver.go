@@ -13,7 +13,7 @@ var serverConfigs ServerConfigs
 
 //var serverDbClient domain.DbClient
 
-func CreateHttpServer(logger domain.Logger) error {
+func CreateHttpServer(logger domain.Logger) (string, error) {
 	if os.Getenv("DD_ENV") != "prod" {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -23,7 +23,7 @@ func CreateHttpServer(logger domain.Logger) error {
 	serverConfigs, err := LoadServerConfigs()
 	if err != nil {
 		logger.WithError(err, "Error loading server configs")
-		return err
+		return "", err
 	}
 	logger.Infof("Server configs loaded: %s", serverConfigs.ApiHost)
 
@@ -46,12 +46,12 @@ func CreateHttpServer(logger domain.Logger) error {
 
 	setRoutes()
 
-	return nil
+	return serverConfigs.ApiHost, nil
 }
 
-func Run() error {
+func Run(addr string) error {
 
-	err := routerServer.Run("localhost:8080") // Can't load env vars here, so hardcoded for now
+	err := routerServer.Run(addr)
 	if err != nil {
 		return fmt.Errorf("failed to start router: %w", err)
 	}

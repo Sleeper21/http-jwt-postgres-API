@@ -14,10 +14,14 @@ type AppDependencies struct {
 func (a AppDependencies) Start() error {
 
 	// Create http server API
-	httpserver.CreateHttpServer(a.Logger)
+	addr, err := httpserver.CreateHttpServer(a.Logger)
+	if err != nil {
+		a.Logger.WithError(err, "Error creating HTTP server")
+		panic(err)
+	}
 
 	// Run server
-	err := httpserver.Run()
+	err = httpserver.Run(addr)
 	if err != nil {
 		a.Logger.WithError(err, "Error starting HTTP server")
 		return err
