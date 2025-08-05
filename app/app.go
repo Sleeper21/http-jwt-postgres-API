@@ -2,26 +2,31 @@ package app
 
 import (
 	"context"
-	"core/app/domain"
-	"core/app/httpserver"
+	"core/app/domain/services"
+	"core/dependencies/httpserver"
+	"github.com/gin-gonic/gin"
 )
 
 type AppDependencies struct {
-	Logger domain.Logger
-	Ctx    context.Context
+	HttpServer *gin.Engine
+	Logger     services.Logger
+	Ctx        context.Context
 }
 
 func (a AppDependencies) Start() error {
 
 	// Create http server API
-	addr, err := httpserver.CreateHttpServer(a.Logger)
+	router, addr, err := httpserver.CreateHttpServer(a.Logger)
 	if err != nil {
 		a.Logger.WithError(err, "Error creating HTTP server")
 		panic(err)
 	}
 
+	// Store the router in the AppDependencies
+	a.HttpServer = router
+
 	// Run server
-	err = httpserver.Run(addr)
+	err = httpserver.Run(router, addr)
 	if err != nil {
 		a.Logger.WithError(err, "Error starting HTTP server")
 		return err

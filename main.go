@@ -19,15 +19,15 @@ func main() {
 		panic("Error loading .env file")
 	}
 
-	logger := logger.NewTextLogger()
-	logger.Infof("Starting execution on: %s\n", time.Now().String())
+	log := logger.NewTextLogger()
+	log.Infof("Starting execution on: %s\n", time.Now().String())
 
 	ctx := context.Background()
-	application := loadDependencies(logger, ctx)
+	application := loadDependencies(log, ctx)
 
 	err = application.Start()
 	if err != nil {
-		logger.WithError(err, "Error starting application")
+		log.WithError(err, "Error starting application")
 		return
 	}
 
@@ -35,18 +35,17 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	logger.Info("Shutting down application...")
+	log.Info("Shutting down application...")
 
 }
 
-func loadDependencies(logger logger.LmptLogger, ctx context.Context) *app.AppDependencies {
+func loadDependencies(logger logger.LmptLogger, ctx context.Context) app.AppDependencies {
 	// Load dependencies here
 	// For example, database connection, cache, etc.
 
 	// Return the application dependencies
-	return &app.AppDependencies{
+	return app.AppDependencies{
 		Logger: logger,
 		Ctx:    ctx,
 	}
-
 }

@@ -1,4 +1,4 @@
-package domain
+package services
 
 type Logger interface {
 	Debug(args ...interface{})
