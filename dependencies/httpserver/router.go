@@ -19,6 +19,7 @@ func CreateHttpRouter(logger services.Logger) HttpRouter {
 
 func (deps HttpRouter) SetRoutes(router *gin.Engine) {
 	// status route
+	router.Use(CheckAuthentication())
 	router.GET("/health", deps.healthCheckHandler)
 }
 
