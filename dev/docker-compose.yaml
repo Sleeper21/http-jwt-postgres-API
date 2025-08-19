@@ -1,0 +1,20 @@
+name: self-httpserver-jwt-postgres
+
+services:
+  self-users-db:
+
+    image: postgres
+    container_name: self-users-db
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-d" ]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 30s
+    env_file:
+      - .env
+    networks:
+      - "default"
+    # Remove port exposition
+    ports:
+      - "${DB_USERS_PORT:-5432}:5432"
