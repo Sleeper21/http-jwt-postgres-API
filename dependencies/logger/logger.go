@@ -1,101 +1,98 @@
 package logger
 
 import (
+	"context"
+	"fmt"
+	"log/slog"
 	"os"
-
-	"github.com/sirupsen/logrus"
 )
 
-type LmptLogger struct {
-	logger *logrus.Logger
-	fields logrus.Fields
+type AppLogger struct {
+	logger *slog.Logger
 }
 
-func (l LmptLogger) Debug(args ...interface{}) {
-	l.logger.WithFields(l.fields).Debug(args...)
+// Debug logs at debug level
+func (l AppLogger) Debug(args ...interface{}) {
+	l.logger.LogAttrs(contextOrBackground(), slog.LevelDebug, fmt.Sprint(args...))
 }
 
-func (l LmptLogger) Debugf(format string, args ...interface{}) {
-	l.logger.WithFields(l.fields).Debugf(format, args...)
+func (l AppLogger) Debugf(format string, args ...interface{}) {
+	l.logger.LogAttrs(contextOrBackground(), slog.LevelDebug, fmt.Sprintf(format, args...))
 }
 
-func (l LmptLogger) Info(args ...interface{}) {
-	l.logger.WithFields(l.fields).Info(args...)
+func (l AppLogger) Info(args ...interface{}) {
+	l.logger.LogAttrs(contextOrBackground(), slog.LevelInfo, fmt.Sprint(args...))
 }
 
-func (l LmptLogger) Infof(format string, args ...interface{}) {
-	l.logger.WithFields(l.fields).Infof(format, args...)
+func (l AppLogger) Infof(format string, args ...interface{}) {
+	l.logger.LogAttrs(contextOrBackground(), slog.LevelInfo, fmt.Sprintf(format, args...))
 }
 
-func (l LmptLogger) Error(args ...interface{}) {
-	l.logger.WithFields(l.fields).Error(args...)
+func (l AppLogger) Error(args ...interface{}) {
+	l.logger.LogAttrs(contextOrBackground(), slog.LevelError, fmt.Sprint(args...))
 }
 
-func (l LmptLogger) Errorf(format string, args ...interface{}) {
-	l.logger.WithFields(l.fields).Errorf(format, args...)
+func (l AppLogger) Errorf(format string, args ...interface{}) {
+	l.logger.LogAttrs(contextOrBackground(), slog.LevelError, fmt.Sprintf(format, args...))
 }
 
-func (l LmptLogger) Warning(args ...interface{}) {
-	l.logger.WithFields(l.fields).Warning(args...)
+func (l AppLogger) Warning(args ...interface{}) {
+	l.logger.LogAttrs(contextOrBackground(), slog.LevelWarn, fmt.Sprint(args...))
 }
 
-func (l LmptLogger) Warningf(format string, args ...interface{}) {
-	l.logger.WithFields(l.fields).Warningf(format, args...)
+func (l AppLogger) Warningf(format string, args ...interface{}) {
+	l.logger.LogAttrs(contextOrBackground(), slog.LevelWarn, fmt.Sprintf(format, args...))
 }
 
-func (l LmptLogger) WithError(err error, message string) {
-	l.logger.WithFields(l.fields).WithError(err).Error(message)
+func (l AppLogger) WithError(err error, message string) {
+	l.logger.LogAttrs(contextOrBackground(), slog.LevelError, message, slog.Any("error", err))
 }
 
-func (l LmptLogger) WithErrorf(err error, format string, args ...interface{}) {
-	l.logger.WithFields(l.fields).WithError(err).Errorf(format, args...)
+func (l AppLogger) WithErrorf(err error, format string, args ...interface{}) {
+	l.logger.LogAttrs(contextOrBackground(), slog.LevelError, fmt.Sprintf(format, args...), slog.Any("error", err))
 }
 
-func NewTextLogger() LmptLogger {
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.TextFormatter{})
-	setLevel(logger)
+// NewTextLogger returns a human-friendly console logger
+func NewTextLogger() AppLogger {
+	level := parseLevel(os.Getenv("LOG_LEVEL"))
+	h := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level})
+	l := slog.New(h).With(defaultAttrs()...)
+	return AppLogger{logger: l}
+}
 
-	return LmptLogger{
-		logger: logger,
-		fields: logrus.Fields{},
+// NewJsonLogger returns a JSON logger suitable for structured logs
+func NewJsonLogger() AppLogger {
+	level := parseLevel(os.Getenv("LOG_LEVEL"))
+	h := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})
+	l := slog.New(h).With(defaultAttrs()...)
+	return AppLogger{logger: l}
+}
+
+func parseLevel(val string) slog.Leveler {
+	switch val {
+	case "debug", "DEBUG":
+		return slog.LevelDebug
+	case "warn", "warning", "WARN":
+		return slog.LevelWarn
+	case "error", "ERROR":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
 	}
 }
 
-func NewJsonLogger() LmptLogger {
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
-	setLevel(logger)
-
-	return LmptLogger{
-		logger: logger,
-		fields: getEnvFields(),
-	}
-}
-
-func setLevel(logger *logrus.Logger) {
-	logLevel := os.Getenv("LOG_LEVEL")
-	level, err := logrus.ParseLevel(logLevel)
-	if err != nil {
-		level = logrus.InfoLevel
-	}
-	logger.SetLevel(level)
-}
-
-func getEnvFields() logrus.Fields {
+func defaultAttrs() []any {
 	env := os.Getenv("DD_ENV")
 	if env == "" {
 		env = "dev"
 	}
-
-	fields := logrus.Fields{
-		// 	"bu_code":            os.Getenv("BU_CODE"),
-		// 	"bu_ownership":       os.Getenv("BU_OWNERSHIP"),
-		"env": env,
-		// 	"project_tangram":    os.Getenv("PROJECT_TANGRAM"),
-		// 	"project_tangram_id": os.Getenv("PROJECT_TANGRAM_ID"),
-		"data_privacy": 0,
+	return []any{
+		slog.String("env", env),
+		slog.Int("data_privacy", 0),
 	}
+}
 
-	return fields
+// contextOrBackground provides a context without leaking external deps
+func contextOrBackground() context.Context {
+	return context.Background()
 }

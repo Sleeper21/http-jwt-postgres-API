@@ -3,21 +3,15 @@ package main
 import (
 	"context"
 	"core/app"
+	"core/app/domain/services"
 	"core/dependencies/logger"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Load environment variables
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
 
 	log := logger.NewTextLogger()
 	log.Infof("Starting execution on: %s\n", time.Now().String())
@@ -25,7 +19,7 @@ func main() {
 	ctx := context.Background()
 	application := loadDependencies(log, ctx)
 
-	err = application.Start()
+	err := application.Start()
 	if err != nil {
 		log.WithError(err, "Error starting application")
 		return
@@ -39,13 +33,13 @@ func main() {
 
 }
 
-func loadDependencies(logger logger.LmptLogger, ctx context.Context) app.AppDependencies {
+func loadDependencies(log services.Logger, ctx context.Context) app.AppDependencies {
 	// Load dependencies here
 	// For example, database connection, cache, etc.
 
 	// Return the application dependencies
 	return app.AppDependencies{
-		Logger: logger,
+		Logger: log,
 		Ctx:    ctx,
 	}
 }
