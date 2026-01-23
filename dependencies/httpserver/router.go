@@ -3,6 +3,7 @@ package httpserver
 import (
 	"core/app/domain/services"
 	"core/app/usecase"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +17,7 @@ func CreateHttpRouter(logger services.Logger) HttpRouter {
 	return HttpRouter{
 		logger: logger,
 	}
+
 }
 
 func (deps HttpRouter) SetRoutes(router *gin.Engine) {
