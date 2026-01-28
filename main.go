@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"core/app"
+	"core/app/domain/models"
 	"core/app/domain/services"
+	"core/dependencies/database"
 	"core/dependencies/logger"
 	"os"
 	"os/signal"
@@ -34,12 +36,26 @@ func main() {
 }
 
 func loadDependencies(log services.Logger, ctx context.Context) app.AppDependencies {
-	// Load dependencies here
-	// For example, database connection, cache, etc.
+	// Connect to database
+	db, err := database.Connect(log)
+	if err != nil {
+		log.WithError(err, "Failed to connect to database")
+		panic(err)
+	}
+
+	// Auto-migrate the User model - this creates the table
+	log.Info("Running database migrations...")
+	err = db.AutoMigrate(&models.User{})
+	if err != nil {
+		log.WithError(err, "Failed to migrate database")
+		panic(err)
+	}
+	log.Info("Database migrations completed successfully")
 
 	// Return the application dependencies
 	return app.AppDependencies{
 		Logger: log,
 		Ctx:    ctx,
+		DB:     db,
 	}
 }

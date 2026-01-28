@@ -4,13 +4,16 @@ import (
 	"context"
 	"core/app/domain/services"
 	"core/dependencies/httpserver"
+
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AppDependencies struct {
 	HttpServer *gin.Engine
 	Logger     services.Logger
 	Ctx        context.Context
+	DB         *gorm.DB
 }
 
 func (a AppDependencies) Start() error {

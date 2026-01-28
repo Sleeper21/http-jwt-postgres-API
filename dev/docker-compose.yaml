@@ -5,13 +5,13 @@ services:
     image: postgres
     container_name: self-users-db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-users_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-self-users}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
     env_file:
-      - .env
+      - dev.env
     networks:
       - "default"
     ports:
@@ -25,7 +25,7 @@ services:
     ports:
       - "${SERVER_PORT:-8080}:8080"
     env_file:
-      - .env
+      - dev.env
     depends_on:
       self-users-db:
         condition: service_healthy
