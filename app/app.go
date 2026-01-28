@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"core/app/domain/services"
-	"core/app/domain/services/user"
+	"core/app/domain/services/userService"
 	"core/dependencies/httpserver"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ type AppDependencies struct {
 	Logger         services.Logger
 	Ctx            context.Context
 	DB             *gorm.DB
-	UserRepository user.UserRepository // Repository for user operations
+	UserRepository userService.UserRepository // Repository for user operations
 }
 
 func (a AppDependencies) Start() error {

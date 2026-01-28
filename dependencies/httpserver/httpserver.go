@@ -2,7 +2,7 @@ package httpserver
 
 import (
 	"core/app/domain/services"
-	"core/app/domain/services/user"
+	"core/app/domain/services/userService"
 	"fmt"
 
 	"os"
@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateHttpServer(logger services.Logger, userRepo user.UserRepository) (*gin.Engine, string, error) {
+func CreateHttpServer(logger services.Logger, userRepo userService.UserRepository) (*gin.Engine, string, error) {
 	if os.Getenv("DD_ENV") != "prod" {
 		gin.SetMode(gin.DebugMode)
 	} else {

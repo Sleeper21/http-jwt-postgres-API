@@ -2,19 +2,19 @@ package httpserver
 
 import (
 	"core/app/domain/services"
-	"core/app/domain/services/user"
-	"core/app/usecase"
+	"core/app/domain/services/userService"
+	"core/app/usecase/user"
 
 	"github.com/gin-gonic/gin"
 )
 
 type HttpRouter struct {
 	logger         services.Logger
-	userRepository user.UserRepository // Repository for user operations
+	userRepository userService.UserRepository // Repository for user operations
 	//authProvider
 }
 
-func CreateHttpRouter(logger services.Logger, userRepo user.UserRepository) HttpRouter {
+func CreateHttpRouter(logger services.Logger, userRepo userService.UserRepository) HttpRouter {
 	return HttpRouter{
 		logger:         logger,
 		userRepository: userRepo,
@@ -45,8 +45,10 @@ func healthCheckHandler(deps HttpRouter) gin.HandlerFunc {
 func registerNewUser(deps HttpRouter) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Call the use case with repository injected
-		user, err := usecase.RegisterUser(ctx, deps.logger, deps.userRepository)
+		user, err := user.RegisterUser(ctx, deps.logger, deps.userRepository)
 		if err != nil {
+			deps.logger.WithError(err, "Error registering new user")
+			ctx.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
