@@ -34,3 +34,22 @@ func Connect(logger services.Logger) (*gorm.DB, error) {
 	logger.Info("Database connection established successfully")
 	return db, nil
 }
+
+// RunMigrations runs all database migrations
+// This creates/updates tables based on model definitions
+func RunMigrations(db *gorm.DB, logger services.Logger) error {
+	logger.Info("Running database migrations...")
+
+	// AutoMigrate will create tables, add missing columns, and indexes
+	// It will NOT delete unused columns or tables
+	err := db.AutoMigrate(
+		&User{}, // Add more models here as your app grows
+	)
+	if err != nil {
+		logger.WithError(err, "Failed to migrate database")
+		return err
+	}
+
+	logger.Info("Database migrations completed successfully")
+	return nil
+}

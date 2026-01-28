@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"core/app/domain/services"
+	"core/app/domain/services/user"
 	"core/dependencies/httpserver"
 
 	"github.com/gin-gonic/gin"
@@ -10,16 +11,17 @@ import (
 )
 
 type AppDependencies struct {
-	HttpServer *gin.Engine
-	Logger     services.Logger
-	Ctx        context.Context
-	DB         *gorm.DB
+	HttpServer     *gin.Engine
+	Logger         services.Logger
+	Ctx            context.Context
+	DB             *gorm.DB
+	UserRepository user.UserRepository // Repository for user operations
 }
 
 func (a AppDependencies) Start() error {
 
 	// Create http server API
-	router, addr, err := httpserver.CreateHttpServer(a.Logger)
+	router, addr, err := httpserver.CreateHttpServer(a.Logger, a.UserRepository)
 	if err != nil {
 		a.Logger.WithError(err, "Error creating HTTP server")
 		panic(err)

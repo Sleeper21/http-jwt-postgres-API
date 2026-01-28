@@ -2,14 +2,17 @@ package httpserver
 
 import (
 	"core/app/domain/services"
+	"core/app/domain/services/user"
 	"fmt"
-	"github.com/gin-contrib/cors"
+
 	"os"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/gin-gonic/gin"
 )
 
-func CreateHttpServer(logger services.Logger) (*gin.Engine, string, error) {
+func CreateHttpServer(logger services.Logger, userRepo user.UserRepository) (*gin.Engine, string, error) {
 	if os.Getenv("DD_ENV") != "prod" {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -34,7 +37,7 @@ func CreateHttpServer(logger services.Logger) (*gin.Engine, string, error) {
 	//router.Use(loggerMiddleware(logger))
 
 	// Create and set up the router
-	httpRouter := CreateHttpRouter(logger)
+	httpRouter := CreateHttpRouter(logger, userRepo)
 	httpRouter.SetRoutes(router)
 
 	return router, serverConfigs.ApiHost, nil

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"core/app"
-	"core/app/domain/models"
 	"core/app/domain/services"
 	"core/dependencies/database"
 	"core/dependencies/logger"
@@ -43,19 +42,23 @@ func loadDependencies(log services.Logger, ctx context.Context) app.AppDependenc
 		panic(err)
 	}
 
-	// Auto-migrate the User model - this creates the table
-	log.Info("Running database migrations...")
-	err = db.AutoMigrate(&models.User{})
+	// Run database migrations
+	err = database.RunMigrations(db, log)
 	if err != nil {
-		log.WithError(err, "Failed to migrate database")
+		log.WithError(err, "Failed to run migrations")
 		panic(err)
 	}
-	log.Info("Database migrations completed successfully")
+
+	// Create UserRepository with database connection
+	// This is where we "inject" the dependency
+	userRepo := database.NewUserRepository(db)
+	log.Info("UserRepository initialized")
 
 	// Return the application dependencies
 	return app.AppDependencies{
-		Logger: log,
-		Ctx:    ctx,
-		DB:     db,
+		Logger:         log,
+		Ctx:            ctx,
+		DB:             db,
+		UserRepository: userRepo,
 	}
 }

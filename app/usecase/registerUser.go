@@ -3,10 +3,13 @@ package usecase
 import (
 	"core/app/domain"
 	"core/app/domain/services"
+	"core/app/domain/services/user"
+
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterUser(ctx *gin.Context, logger services.Logger) (domain.NewUser, error) {
+// RegisterUser handles the business logic for user registration
+func RegisterUser(ctx *gin.Context, logger services.Logger, userRepo user.UserRepository) (domain.NewUser, error) {
 	var request domain.NewUser
 
 	err := ctx.ShouldBind(&request)
@@ -24,6 +27,14 @@ func RegisterUser(ctx *gin.Context, logger services.Logger) (domain.NewUser, err
 
 	logger.Infof("Registering new user: %s", request.Email)
 	logger.Infof("User Password: %s", request.Password)
+
+	// Use repository to insert the user
+	err = userRepo.InsertNewUser(request)
+	if err != nil {
+		logger.WithError(err, "Error inserting new user into database")
+		ctx.JSON(500, gin.H{"error": "internal server error"})
+		return domain.NewUser{}, err
+	}
 
 	return request, nil
 }
